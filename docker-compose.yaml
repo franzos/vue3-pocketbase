@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    network_mode: host
+    command: ./pocketbase serve
+    # ports:
+    #   - "8090:8090"
+    volumes:
+      - ./pb_data:/app/pb_data
+      - ./pb_migrations:/app/pb_migrations
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      network: host
+    network_mode: host
+    command: pnpm run dev --host
+    # ports:
+    #   - "5173:5173"
+    volumes:
+      - ./client:/app
+      - ./pb_migrations:/app/pb_migrations
