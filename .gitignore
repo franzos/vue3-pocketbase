@@ -1,2 +1,6 @@
 pb_data
 !pb_data/.gitkeep
+*.log
+pkg
+tmp
+.air.toml

@@ -1,0 +1,21 @@
+# .air.toml
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "tmp/main serve --dir /home/franz/git/gpt-pocketbase/server/pb_data"
+  log = "air.log"
+
+[watch]
+  includes = ["."]
+  excludes = ["tmp", "vendor"]
+
+[logger]
+  level = "info"
+  output = "air.log"
+
+[on_error]
+  command = ""
+  output = "/dev/null"
+
+[on_shutdown]
+  command = ""
+  output = "/dev/null"
