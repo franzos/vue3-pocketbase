@@ -1,13 +1,23 @@
-FROM node
-RUN npm install -g pnpm
+# Client Dockerfile
+FROM node:16-alpine as build-stage
 
 WORKDIR /app
 
-COPY ./package.json ./
-COPY ./.npmrc ./
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
 
-RUN pnpm install
+COPY . .
+RUN pnpm run build
 
-EXPOSE 5173
+FROM node:16-alpine as production-stage
 
-CMD ["pnpm", "run", "dev", "--host"]
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+COPY --from=build-stage /app/dist /app/dist
+COPY --from=build-stage /app/node_modules /app/node_modules
+COPY --from=build-stage /app/package.json /app/package.json
+
+EXPOSE 4173
+CMD ["pnpm", "run", "preview", "--host"]

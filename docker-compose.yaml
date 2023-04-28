@@ -1,27 +1,20 @@
 version: '3.6'
 
 services:
-  pocketbase:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  client:
+    build: 
+      context: ./client
       network: host
-    network_mode: host
-    command: ./pocketbase serve
-    # ports:
-    #   - "8090:8090"
+    container_name: client
+    ports:
+      - "4173:4173"
+
+  server:
+    build:
+      context: ./server
+      network: host
+    container_name: server
+    ports:
+      - "8090:8090"
     volumes:
       - ./pb_data:/app/pb_data
-      - ./pb_migrations:/app/pb_migrations
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      network: host
-    network_mode: host
-    command: pnpm run dev --host
-    # ports:
-    #   - "5173:5173"
-    volumes:
-      - ./client:/app
-      - ./pb_migrations:/app/pb_migrations

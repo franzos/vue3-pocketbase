@@ -4,3 +4,4 @@ pb_data
 pkg
 tmp
 .air.toml
+server/server
