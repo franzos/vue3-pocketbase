@@ -106,7 +106,7 @@ function cancel() {
     </n-form-item>
 
     <n-form-item label="Email:">
-      <n-input type="email" v-model:value="form.email" />
+      <n-input v-model:value="form.email" />
     </n-form-item>
 
     <n-form-item label="Email Visibility:">
