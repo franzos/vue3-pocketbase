@@ -1,45 +1,47 @@
 package main
 
 import (
-    "errors"
-    "fmt"
+	"errors"
+	"fmt"
 	"log"
-    "net/mail"
-    "strings"
+	"net/mail"
+	"strings"
 
-    "github.com/pocketbase/pocketbase/tools/mailer"
+	"github.com/pocketbase/pocketbase/tools/mailer"
 )
 
 func sendEmailIfContactInfoExists(data map[string]interface{}, recipientEmail string) error {
-    _, emailExists := data["email"].(string)
-    _, phoneExists := data["phone"].(string)
+	_, emailExists := data["email"].(string)
+	_, phoneExists := data["phone"].(string)
 
-    if !emailExists && !phoneExists {
-        return errors.New("No email or phone found in submission data")
-    }
+	if !emailExists && !phoneExists {
+		return errors.New("No email or phone found in submission data")
+	}
 
 	if recipientEmail == "" {
 		return errors.New("No forwarder email set")
-	} 
+	}
 
-    // Prepare the data list for the email body
-    dataList := make([]string, 0, len(data))
-    for key, value := range data {
-        dataList = append(dataList, fmt.Sprintf("%s: %v", key, value))
-    }
-    dataContent := strings.Join(dataList, "\n")
+	// Prepare the data list for the email body
+	dataList := make([]string, 0, len(data))
+	for key, value := range data {
+		dataList = append(dataList, fmt.Sprintf("%s: %v", key, value))
+	}
+	dataContent := strings.Join(dataList, "\n")
 
-    message := &mailer.Message{
-        From: mail.Address{
-            Address: "",
-            Name:    "",
-        },
-        To:      mail.Address{[Address: recipientEmail]},
-        Subject: "New submission received",
-        HTML:    "<p>New submission information:</p><pre>" + dataContent + "</pre>",
-    }
+	message := &mailer.Message{
+		From: mail.Address{
+			Address: "",
+			Name:    "",
+		},
+		To:      []mail.Address{{Address: recipientEmail, Name: ""}},
+		Subject: "New submission received",
+		HTML:    "<p>New submission information:</p><pre>" + dataContent + "</pre>",
+	}
+
+	log.Printf("Sending email %s", message)
 
 	return nil
 
-    // return app.NewMailClient().Send(message)
+	// return app.NewMailClient().Send(message)
 }
