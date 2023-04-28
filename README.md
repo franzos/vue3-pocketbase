@@ -5,7 +5,6 @@ This repo explores the integration of a Vue 3 frontend with a minimal PocketBase
 **Features**
 
 - Registration and login on Vue 3 frontend
-- News collection example
 - Form submissions (with basic spam check and email forwarding)
 
 **Technologies**
@@ -14,19 +13,19 @@ This repo explores the integration of a Vue 3 frontend with a minimal PocketBase
 - Vue 3, Vite, Pinia, Naive UI
 
 ## Setup
+### Production
 
-Here's a rough overview of what you need to do, to set this up:
+For a quick trial, simply run docker: `docker-compose up -d`.
 
-1. Run locally or with Docker
-2. Open backend http://127.0.0.1:8090/_/ in your browser and create a admin user
-3. Double-check that the migration has run (`News` collection should be listed here: http://127.0.0.1:8090/_/#/collections)
-4. Open front-end http://localhost:5173 and enjoy
+Backend data is stored at `./pb_data`. You can change this path in `docker-compose.yml`.
 
-### Run
+- Admin UI: http://localhost:8090/_/
+- REST API: http://localhost:8090/api/
+- Vue 3 frontend: http://localhost:4173/
 
-For a quick trial, simply use docker: `docker-compose up`.
+If you want to go live, you'll need to setup a reverse proxy like nginx.
 
-#### Local
+### Development
 
 Install client dependencies and run:
 
@@ -47,13 +46,15 @@ Run client and server:
 
 ```bash
 cd server
+# guix environment --pure --ad-hoc go
+go mod download && go mod verify
 go run main.go serve
 ```
 
 Hot reload with `air`:
 
 ```bash
-guix environment --pure --ad-hoc go
+# guix environment --pure --ad-hoc go
 go install github.com/cosmtrek/air@latest
 export GOBIN=/home/$(whoami)/go/bin
 export PATH=$PATH:$GOBIN
@@ -91,14 +92,6 @@ Run `air`:
 air
 ```
 
-#### Docker
-
-Run Docker container:
-
-```bash
-docker-compose up -d
-```
-
 ## Migratons
 
 Here's how-to create and run database migrations:
@@ -124,7 +117,7 @@ The cool thing is, you can also simply create a new collection trough via admin 
 
 ## API
 
-Here's what a form submission looks like:
+Here's what a form submission could look like:
 
 ```bash
 curl -X POST \
