@@ -1,47 +1,79 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/mail"
 	"strings"
 
+	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/tools/mailer"
 )
 
-func sendEmailIfContactInfoExists(data map[string]interface{}, recipientEmail string) error {
-	_, emailExists := data["email"].(string)
-	_, phoneExists := data["phone"].(string)
+type EmailApiData struct {
+	app            pocketbase.PocketBase
+	data           map[string]interface{}
+	recipientEmail string
+}
+
+type EmailApiResult struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	HTML    string `json:"html"`
+}
+
+func sendEmailIfContactInfoExists(api EmailApiData) (*EmailApiResult, error) {
+	_, emailExists := api.data["email"].(string)
+	_, phoneExists := api.data["phone"].(string)
 
 	if !emailExists && !phoneExists {
-		return errors.New("No email or phone found in submission data")
+		return nil, errors.New("No email or phone found in submission data")
 	}
 
-	if recipientEmail == "" {
-		return errors.New("No forwarder email set")
+	if api.recipientEmail == "" {
+		return nil, errors.New("No recipient email set")
 	}
 
 	// Prepare the data list for the email body
-	dataList := make([]string, 0, len(data))
-	for key, value := range data {
+	dataList := make([]string, 0, len(api.data))
+	for key, value := range api.data {
 		dataList = append(dataList, fmt.Sprintf("%s: %v", key, value))
 	}
 	dataContent := strings.Join(dataList, "\n")
 
 	message := &mailer.Message{
 		From: mail.Address{
-			Address: "",
-			Name:    "",
+			Address: api.app.Settings().Meta.SenderAddress,
+			Name:    api.app.Settings().Meta.SenderName,
 		},
-		To:      []mail.Address{{Address: recipientEmail, Name: ""}},
+		To:      []mail.Address{{Address: api.recipientEmail, Name: ""}},
 		Subject: "New submission received",
 		HTML:    "<p>New submission information:</p><pre>" + dataContent + "</pre>",
+		Text:    "New submission information:\n" + dataContent,
 	}
 
-	log.Printf("Sending email %s", message)
+	err := api.app.NewMailClient().Send(message)
+	if err != nil {
+		log.Printf("Error sending email: %v", err)
+		return nil, err
+	} else {
+		result := &EmailApiResult{
+			From:    message.From.Address,
+			To:      message.To[0].Address,
+			Subject: message.Subject,
+		}
+		return result, nil
+	}
+}
 
-	return nil
-
-	// return app.NewMailClient().Send(message)
+func (er EmailApiResult) toJSON() string {
+	res, err := json.Marshal(er)
+	if err != nil {
+		log.Printf("Error marshalling email result: %v", err)
+		return ""
+	}
+	return string(res)
 }
