@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -27,24 +28,13 @@ func main() {
 		if e.Model.TableName() == "submissions" {
 
 			// Get the submission record by ID
-			record, err := app.Dao().FindRecordById("submissions", e.Model.GetId())
-			if err != nil {
-				log.Printf("Error fetching submission record: %v\n", err)
-				return err
-			}
+			record := e.Model.(*models.Record)
 
-			// Get the forwarders ids from the submission record
-			forwarderIds := record.GetStringSlice("forwarders")
-			if err != nil {
-				log.Printf("Error getting forwarders ids from submission record: %v\n", err)
-				return err
-			}
-
-			// Get all forwarder records by their ids
-			forwarderRecords, err := app.Dao().FindRecordsByIds("forwarders", forwarderIds)
-			if err != nil {
-				log.Printf("Error fetching forwarder records: %v\n", err)
-				return err
+			// If spam score is 100, we don't try to send an email
+			spamScore := record.GetInt("spamScore")
+			if spamScore == 100 {
+				log.Printf("Submission %s was flagged as spam, not sending email\n", record.GetId())
+				return nil
 			}
 
 			recordData := make(map[string]interface{})
@@ -54,8 +44,26 @@ func main() {
 				return err
 			}
 
+			// If submission has no contact information, like email or phone, we don't try to send an email
+			_, emailExists := normalizedData["email"].(string)
+			_, phoneExists := normalizedData["phone"].(string)
+
+			if !emailExists && !phoneExists {
+				return errors.New("No email or phone found in submission data")
+			}
+
+			// Get the forwarders ids from the submission record
+			forwarderIds := record.GetStringSlice("forwarders")
+
+			// Get all forwarder records by their ids
+			forwarderRecords, err := app.Dao().FindRecordsByIds("forwarders", forwarderIds)
+			if err != nil {
+				log.Printf("Error fetching forwarder records: %v\n", err)
+				return err
+			}
+
 			for _, forwarderRecord := range forwarderRecords {
-				res, err := sendEmailIfContactInfoExists(EmailApiData{
+				res, err := SendEmailIfContactInfoExists(EmailApiData{
 					app:            *app,
 					data:           normalizedData,
 					recipientEmail: forwarderRecord.GetString("recipient"),

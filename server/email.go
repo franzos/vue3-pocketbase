@@ -25,14 +25,7 @@ type EmailApiResult struct {
 	HTML    string `json:"html"`
 }
 
-func sendEmailIfContactInfoExists(api EmailApiData) (*EmailApiResult, error) {
-	_, emailExists := api.data["email"].(string)
-	_, phoneExists := api.data["phone"].(string)
-
-	if !emailExists && !phoneExists {
-		return nil, errors.New("No email or phone found in submission data")
-	}
-
+func SendEmailIfContactInfoExists(api EmailApiData) (*EmailApiResult, error) {
 	if api.recipientEmail == "" {
 		return nil, errors.New("No recipient email set")
 	}
