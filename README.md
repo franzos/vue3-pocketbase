@@ -5,7 +5,7 @@ This repo explores the integration of a Vue 3 frontend with a minimal PocketBase
 **Features**
 
 - Registration and login on Vue 3 frontend
-- Form submissions (with basic spam check and email forwarding)
+- Form submissions (with basic spam check, blocklist and email forwarding)
 
 **Technologies**
 
@@ -15,7 +15,10 @@ This repo explores the integration of a Vue 3 frontend with a minimal PocketBase
 ## Setup
 ### Production
 
-For a quick trial, simply run docker: `docker-compose up -d`.
+For a quick trial, 
+
+1. Create a `prod.env` file with `PB_ENCRYPTION_KEY`
+2. Run docker: `docker-compose up -d`.
 
 Backend data is stored at `./pb_data`. You can change this path in `docker-compose.yml`.
 
@@ -35,13 +38,6 @@ pnpm install
 pnpm run dev
 ```
 
-Install PocketBase
-
-```bash
-wget https://github.com/pocketbase/pocketbase/releases/download/v0.14.3/pocketbase_0.14.3_linux_amd64.zip
-unzip pocketbase_0.14.3_linux_amd64.zip
-```
-
 Run client and server:
 
 ```bash
@@ -50,6 +46,8 @@ cd server
 go mod download && go mod verify
 go run main.go serve
 ```
+
+#### Hot reload
 
 Hot reload with `air`:
 
@@ -65,7 +63,7 @@ Create a `.air.toml` file roughly like this (substitute the path to your `pb_dat
 ```toml
 # .air.toml
 [build]
-  cmd = "go build -o ./tmp/main ."
+  cmd = "go build ."
   bin = "tmp/main serve --dir /home/franz/git/gpt-pocketbase/server/pb_data"
   log = "air.log"
 
@@ -108,12 +106,14 @@ The cool thing is, you can also simply create a new collection trough via admin 
 
 - [X] Explore migrations
 - [X] Turn into something useful
-- [ ] Update docker file
+- [X] Update docker file
 - [ ] Explore 3rd party auth
 - [ ] Cleanup client
 - [X] Move server into `./server`
 - [ ] Tests
-- [ ] Fix Docker permissions
+- [ ] Replace logs ([issue](https://github.com/pocketbase/pocketbase/discussions/1781))
+- [ ] Add support for organizations
+- [ ] Support global and organization-specific blocklists
 
 ## API
 
